@@ -7,6 +7,8 @@
 
 const static uint1024_t ZERO =
   { 0 };
+const static uint1024_t ONE =
+  { 0x01 };
 
 uint1_t
 uint1024_isequal (const uint1024_t *a, const uint1024_t *b)
@@ -167,6 +169,32 @@ uint1024_mul (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
   assert(dest != NULL);
 
   shift_and_add (a, b, dest);
+}
+
+//  function modular_pow(base, exponent, modulus)
+//      if modulus = 1 then return 0
+//      Assert :: (modulus - 1) * (modulus - 1) does not overflow base
+//      result := 1
+//      base := base mod modulus
+//      while exponent > 0
+//          if (exponent mod 2 == 1):
+//             result := (result * base) mod modulus
+//          exponent := exponent >> 1
+//          base := (base * base) mod modulus
+//      return result
+void
+uint1024_modp (const uint1024_t *base, const uint1024_t *exp,
+	       const uint1024_t *mod, uint1024_t *dest)
+{
+  assert(base != NULL);
+  assert(exp != NULL);
+  assert(mod != NULL);
+  assert(dest != NULL);
+
+  uint1024_zeroize (dest);
+
+  if (uint1024_isequal (mod, &ONE))
+    return;
 }
 
 void
