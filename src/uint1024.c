@@ -141,7 +141,6 @@ uint1024_sub (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
 static void
 shift_and_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
 {
-
   // assert not needed.
 
   uint1024_t temp1;
