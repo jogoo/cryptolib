@@ -195,21 +195,53 @@ test_greater ()
 }
 
 static void
+test_oddeven ()
+{
+  uint1024_t a;
+
+  uint1024_zeroize (&a);
+
+  uint16_t i;
+  for (i = 0; i < 0xff; i++)
+    {
+      a.bytes[0] = i % 2;
+      if (i % 2 == 1)
+	assert(uint1024_isodd (&a) == 1);
+      else
+	assert(uint1024_iseven (&a) == 1);
+    }
+}
+
+static void
 test_mul ()
 {
   uint1024_t a1 =
     { 0x0b };
   uint1024_t b1 =
     { 0x03 };
+  uint1024_t check =
+    { 0x21 };
   uint1024_t c;
 
   uint1024_zeroize (&c);
-
-  printf ("%x\n", (0x03 * 0x0b));
-
   uint1024_mul (&a1, &b1, &c);
+  assert(uint1024_isequal (&c, &check) == 1);
+}
 
-  uint1024_print (&c);
+static void
+test_mul_2 ()
+{
+  uint1024_t a1 =
+    { 0xc6, 0x16 };
+  uint1024_t b1 =
+    { 0xd9, 0x92, 0x6d, 0x01 };
+  uint1024_t check =
+    { 0xd6, 0x39, 0x5e, 0x85, 0x20 };
+  uint1024_t c;
+
+  uint1024_zeroize (&c);
+  uint1024_mul (&a1, &b1, &c);
+  assert(uint1024_isequal (&c, &check) == 1);
 }
 
 void
@@ -222,9 +254,12 @@ test ()
   test_rshift_simple ();
   test_shift_complex ();
 
+  test_oddeven ();
+
   test_greater ();
 
   test_mul ();
+  test_mul_2 ();
 
   printf ("Testfall avklarade.");
 }
