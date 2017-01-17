@@ -83,7 +83,7 @@ uint1024_set (const uint1024_t *bn, const uint8_t *array)
   assert(bn != NULL);
   assert(array != NULL);
 
-  memcpy(bn->bytes, array, MAX_SIZE_BYTES);
+  memcpy (bn->bytes, array, MAX_SIZE_BYTES);
 }
 
 static void
@@ -143,6 +143,8 @@ shift_and_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
 {
   // assert not needed.
 
+  // temporary variables.
+  // may contain sensitive information -> zeroize
   uint1024_t temp1;
   uint1024_t temp2;
 
@@ -158,6 +160,10 @@ shift_and_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
       uint1024_rshift (&temp1, &temp1, 1);
       uint1024_lshift (&temp2, &temp2, 1);
     }
+
+  // zeroize sensitive variables.
+  uint1024_zeroize (&temp1);
+  uint1024_zeroize (&temp2);
 }
 
 void
@@ -194,6 +200,15 @@ uint1024_modp (const uint1024_t *base, const uint1024_t *exp,
 
   if (uint1024_isequal (mod, &ONE))
     return;
+
+  // temporary variables.
+  // may contain sensitive information -> zeroize
+  uint1024_t temp1;
+  uint1024_t temp2;
+  uint1024_zeroize (&temp1);
+  uint1024_zeroize (&temp2);
+
+//  assert(uint1024_sub(mod, &ONE, mod))
 }
 
 void
@@ -245,7 +260,7 @@ uint1024_zeroize (const uint1024_t *bn)
 {
   assert(bn != NULL);
 
-  memset(bn->bytes, 0, MAX_SIZE_BYTES);
+  memset (bn->bytes, 0, MAX_SIZE_BYTES);
 }
 
 void

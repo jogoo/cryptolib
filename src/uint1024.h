@@ -104,6 +104,11 @@ uint1024_mul (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
 
 /**
  * uint1024 modular exponentiation c ≡ b^exp (mod m).
+ * the implementation use the right-to-left binary method.
+ * this method drastically reduces the number of operations
+ * to perform modular exponentiation, while keeping the same memory.
+ *
+ * based on Applied Cryptography, p. 244. by Bruce Schneier
  *
  * The running time of implemented algorithm is O(log exp).
  */
