@@ -76,7 +76,7 @@ uint1024_isodd (const uint1024_t *bn);
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 void
-uint1024_set (const uint1024_t *bn, const uint8_t *value);
+uint1024_set (const uint1024_t *bn, const uint8_t *val);
 
 /**
  * uint1024 addition c = a + b.
@@ -130,7 +130,7 @@ uint1024_modp (const uint1024_t *base, const uint1024_t *exp,
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 void
-uint1024_lshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest);
+uint1024_lshift (const uint1024_t *bn, uint16_t n, uint1024_t *c);
 
 /**
  * uint1024 logical right shift.
@@ -138,7 +138,7 @@ uint1024_lshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest);
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 void
-uint1024_rshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest);
+uint1024_rshift (const uint1024_t *bn, uint16_t n, uint1024_t *c);
 
 /**
  * uint1024 zeroize.
