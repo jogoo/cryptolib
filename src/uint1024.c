@@ -9,6 +9,8 @@ const static uint1024_t ZERO =
   { 0 };
 const static uint1024_t ONE =
   { 0x01 };
+const static uint1024_t TWO =
+  { 0x02 };
 
 uint1_t
 uint1024_isequal (const uint1024_t *a, const uint1024_t *b)
@@ -54,21 +56,15 @@ uint1024_isgreater (const uint1024_t *a, const uint1024_t *b)
 uint1_t
 uint1024_isless (const uint1024_t *a, const uint1024_t *b)
 {
-  return !uint1024_isgreater (a, b);
-}
-
-static uint1_t
-uint1024_isodd_n (const uint8_t *array)
-{
-  assert(array != NULL);
-
-  return array[0] & 0x01;
+  return uint1024_isgreater (a, b) == 0;
 }
 
 uint1_t
 uint1024_isodd (const uint1024_t *bn)
 {
-  return uint1024_isodd_n (bn->bytes);
+  assert(bn != NULL);
+
+  return bn->bytes[0] & 0x01;
 }
 
 uint1_t
@@ -83,7 +79,7 @@ uint1024_set (const uint1024_t *bn, const uint8_t *array)
   assert(bn != NULL);
   assert(array != NULL);
 
-  memcpy (bn->bytes, array, MAX_SIZE_BYTES);
+  memcpy(bn->bytes, array, MAX_SIZE_BYTES);
 }
 
 static void
@@ -157,8 +153,8 @@ shift_and_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
       if (uint1024_isodd (&temp1))
 	uint1024_add (&temp2, dest, dest);
 
-      uint1024_rshift (&temp1, &temp1, 1);
-      uint1024_lshift (&temp2, &temp2, 1);
+      uint1024_rshift (&temp1, 1, &temp1);
+      uint1024_lshift (&temp2, 1, &temp2);
     }
 
   // zeroize sensitive variables.
@@ -174,6 +170,14 @@ uint1024_mul (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
   assert(dest != NULL);
 
   shift_and_add (a, b, dest);
+}
+
+void
+uint1024_mod (const uint1024_t *base, const uint1024_t *mod, uint1024_t *dest)
+{
+  printf ("uint1024_mod\n");
+
+  uint1024_modp (base, &ONE, mod, dest);
 }
 
 //  function modular_pow(base, exponent, modulus)
@@ -203,16 +207,39 @@ uint1024_modp (const uint1024_t *base, const uint1024_t *exp,
 
   // temporary variables.
   // may contain sensitive information -> zeroize
-  uint1024_t temp1;
-  uint1024_t temp2;
-  uint1024_zeroize (&temp1);
-  uint1024_zeroize (&temp2);
+  uint1024_t _base;
+  uint1024_t _exp;
 
-//  assert(uint1024_sub(mod, &ONE, mod))
+  uint1024_set(dest, &ONE.bytes);
+
+  // base := base mod modulus
+  if (!uint1024_isequal (exp, &ONE))
+    uint1024_mod (base, mod, &_base);
+  else
+    uint1024_set (&_base, base->bytes);
+
+  uint1024_set (&_exp, exp->bytes);
+
+  // while exponent > 0
+  while (!uint1024_iszero (&_exp))
+    {
+      // if (exponent mod 2 == 1):
+      if (uint1024_isodd (&_exp))
+	{
+
+	  // result := (result * base) mod modulus
+	  uint1024_mul (dest, &_base, dest);
+//	  uint1024_mod (dest, mod, dest);
+	}
+      // exponent := exponent >> 1
+      uint1024_rshift (&_exp, 1, &_exp);
+      // base := (base * base) mod modulus
+      uint1024_mul (&_base, &_base, &_base);
+    }
 }
 
 void
-uint1024_lshift (const uint1024_t *bn, uint1024_t *dest, uint16_t n)
+uint1024_lshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest)
 {
   assert(bn != NULL);
   assert(dest != NULL);
@@ -234,7 +261,7 @@ uint1024_lshift (const uint1024_t *bn, uint1024_t *dest, uint16_t n)
 }
 
 void
-uint1024_rshift (const uint1024_t *bn, uint1024_t *dest, uint16_t n)
+uint1024_rshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest)
 {
   assert(bn != NULL);
   assert(dest != NULL);
@@ -260,7 +287,7 @@ uint1024_zeroize (const uint1024_t *bn)
 {
   assert(bn != NULL);
 
-  memset (bn->bytes, 0, MAX_SIZE_BYTES);
+  memset(bn->bytes, 0, MAX_SIZE_BYTES);
 }
 
 void

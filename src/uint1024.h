@@ -103,6 +103,14 @@ void
 uint1024_mul (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
 
 /**
+ * uint1024 modular c ≡ b (mod m).
+ *
+ *
+ */
+void
+uint1024_mod (const uint1024_t *base, const uint1024_t *mod, uint1024_t *c);
+
+/**
  * uint1024 modular exponentiation c ≡ b^exp (mod m).
  * the implementation use the right-to-left binary method.
  * this method drastically reduces the number of operations
@@ -122,7 +130,7 @@ uint1024_modp (const uint1024_t *base, const uint1024_t *exp,
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 void
-uint1024_lshift (const uint1024_t *bn, uint1024_t *dest, uint16_t n);
+uint1024_lshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest);
 
 /**
  * uint1024 logical right shift.
@@ -130,7 +138,7 @@ uint1024_lshift (const uint1024_t *bn, uint1024_t *dest, uint16_t n);
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 void
-uint1024_rshift (const uint1024_t *bn, uint1024_t *dest, uint16_t steps);
+uint1024_rshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest);
 
 /**
  * uint1024 zeroize.

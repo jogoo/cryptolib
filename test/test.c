@@ -66,27 +66,27 @@ test_lshift_simple ()
 
   uint1024_t c1 =
     { 0xfe, 0x01 };
-  uint1024_lshift (&a, &b, 1);
+  uint1024_lshift (&a, 1, &b);
   assert(uint1024_isequal (&b, &c1) == 1);
 
   uint1024_t c2 =
     { 0x80, 0x7f };
-  uint1024_lshift (&a, &b, 7);
+  uint1024_lshift (&a, 7, &b);
   assert(uint1024_isequal (&b, &c2) == 1);
 
   uint1024_t c3 =
     { 0x00, 0xff };
-  uint1024_lshift (&a, &b, 8);
+  uint1024_lshift (&a, 8, &b);
   assert(uint1024_isequal (&b, &c3) == 1);
 
   uint1024_t c4 =
     { 0x00, 0x80, 0x7f };
-  uint1024_lshift (&a, &b, 15);
+  uint1024_lshift (&a, 15, &b);
   assert(uint1024_isequal (&b, &c4) == 1);
 
   uint1024_t c5 =
     { 0x00, 0x00, 0x00, 0x80, 0x7f };
-  uint1024_lshift (&a, &b, 31);
+  uint1024_lshift (&a, 31, &b);
   assert(uint1024_isequal (&b, &c5) == 1);
 
   // 5F8EF09 * 2 = BF1DE12
@@ -94,7 +94,7 @@ test_lshift_simple ()
     { 0x09, 0xef, 0xf8, 0x05 };
   uint1024_t c6 =
     { 0x12, 0xde, 0xf1, 0x0b };
-  uint1024_lshift (&a6, &b, 1);
+  uint1024_lshift (&a6, 1, &b);
   assert(uint1024_isequal (&b, &c6) == 1);
 }
 
@@ -107,14 +107,14 @@ test_rshift_simple ()
 
   uint1024_t c1 =
     { 0xff, 0x07 };
-  uint1024_rshift (&a, &b, 1);
+  uint1024_rshift (&a, 1, &b);
   assert(uint1024_isequal (&b, &c1) == 1);
 
   uint1024_t a2 =
     { 0x55, 0x52, 0x53, 0xEA };
   uint1024_t c2 =
     { 0xA9, 0x29, 0x75, 0x00, };
-  uint1024_rshift (&a2, &b, 9);
+  uint1024_rshift (&a2, 9, &b);
   assert(uint1024_isequal (&b, &c2) == 1);
 
   uint1024_t a3;
@@ -125,7 +125,7 @@ test_rshift_simple ()
   uint1024_zeroize (&c3);
   c3.bytes[MAX_SIZE_BYTES - 1] = 0x40;
 
-  uint1024_rshift (&a3, &b, 1);
+  uint1024_rshift (&a3, 1, &b);
   assert(uint1024_isequal (&b, &c3) == 1);
 
   uint1024_t a4;
@@ -135,7 +135,7 @@ test_rshift_simple ()
   uint1024_t c4;
   uint1024_zeroize (&c4);
 
-  uint1024_rshift (&a4, &b, 1);
+  uint1024_rshift (&a4, 1, &b);
   assert(uint1024_isequal (&b, &c4) == 1);
 }
 
@@ -157,8 +157,8 @@ test_shift_complex ()
       if (i == 0)
 	continue;
 
-      uint1024_lshift (&bn, &check, i);
-      uint1024_rshift (&check, &check, i);
+      uint1024_lshift (&bn, i, &check);
+      uint1024_rshift (&check, i, &check);
       assert(uint1024_isequal (&bn, &check) == 1);
     }
 }
@@ -244,6 +244,23 @@ test_mul_2 ()
   assert(uint1024_isequal (&c, &check) == 1);
 }
 
+static void
+test_mod ()
+{
+  uint1024_t a1 =
+    { 0x0a };
+  uint1024_t b1 =
+    { 0x03 };
+  uint1024_t check =
+    { 0x01 };
+  uint1024_t c;
+  uint1024_zeroize (&c);
+
+  uint1024_mod (&a1, &b1, &c);
+  uint1024_print(&c);
+  assert(uint1024_isequal (&c, &check) == 1);
+}
+
 void
 test ()
 {
@@ -260,6 +277,8 @@ test ()
 
   test_mul ();
   test_mul_2 ();
+
+  test_mod ();
 
   printf ("Testfall avklarade.");
 }
