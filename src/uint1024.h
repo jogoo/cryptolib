@@ -20,8 +20,16 @@ extern "C"
   {
 #endif
 
-#define MAX_SIZE_BITS 8192
+#define MAX_SIZE_BITS 32
 #define MAX_SIZE_BYTES MAX_SIZE_BITS / 8
+
+#ifndef max
+#define max(a,b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+#endif
 
 typedef _Bool uint1_t;
 
@@ -71,6 +79,18 @@ uint1_t
 uint1024_isodd (const uint1024_t *bn);
 
 /**
+ * uint1024 check if zero.
+ */
+uint1_t
+uint1024_iszero (const uint1024_t *bn);
+
+/**
+ * uint1024 check if one.
+ */
+uint1_t
+uint1024_isone (const uint1024_t *bn);
+
+/**
  * uint1024 set value.
  *
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
@@ -101,6 +121,9 @@ uint1024_sub (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
  */
 void
 uint1024_mul (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
+
+void
+uint1024_gcd (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
 
 /**
  * uint1024 modular c ≡ b (mod m).
@@ -149,9 +172,13 @@ void
 uint1024_zeroize (const uint1024_t *bn);
 
 /**
+ * uint1024 swap
+ */
+void
+uint1024_swap (uint1024_t *a, uint1024_t *b);
+
+/**
  * uint1024 print.
- *
- * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 void
 uint1024_print (uint1024_t *bn);

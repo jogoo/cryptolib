@@ -173,7 +173,7 @@ test_greater ()
   uint1024_zeroize (&b1);
 
   uint16_t i;
-  for (i = 0; i < 0xff; i++)
+  for (i = 0; i < min(MAX_SIZE_BYTES, 0xff); i++)
     {
       a1.bytes[i] = i;
       b1.bytes[i] = i + 1;
@@ -245,19 +245,36 @@ test_mul_2 ()
 }
 
 static void
+test_gcd ()
+{
+  uint1024_t a =
+    { 0x36 };
+  uint1024_t b =
+    { 0x18 };
+  uint1024_t check =
+    { 0x06 };
+
+  uint1024_t c;
+  uint1024_zeroize (&c);
+
+  uint1024_gcd (&a, &b, &c);
+  assert(uint1024_isequal (&c, &check) == 1);
+}
+
+static void
 test_mod ()
 {
   uint1024_t a1 =
     { 0x0a };
   uint1024_t b1 =
-    { 0x03 };
+    { 0x02 };
   uint1024_t check =
     { 0x01 };
   uint1024_t c;
   uint1024_zeroize (&c);
 
   uint1024_mod (&a1, &b1, &c);
-  uint1024_print(&c);
+  uint1024_print (&c);
   assert(uint1024_isequal (&c, &check) == 1);
 }
 
@@ -277,6 +294,8 @@ test ()
 
   test_mul ();
   test_mul_2 ();
+
+  test_gcd ();
 
   test_mod ();
 
