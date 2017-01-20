@@ -293,6 +293,24 @@ test_mod_2 ()
   assert(uint1024_isequal (&c, &check) == 1);
 }
 
+static void
+test_modp ()
+{
+  uint1024_t a =
+	{ 0x05 };
+  uint1024_t b =
+	{ 0x37 };
+  uint1024_t m =
+	{ 0xDD };
+  uint1024_t check =
+	{ 0x70 };
+  uint1024_t c;
+  uint1024_zeroize (&c);
+
+  uint1024_modp (&a, &b, &m, &c);
+  assert(uint1024_isequal (&c, &check) == 1);
+}
+
 void
 test ()
 {
@@ -314,6 +332,8 @@ test ()
 
   test_mod ();
   test_mod_2 ();
+
+  test_modp ();
 
   printf ("Testfall avklarade.");
 }
