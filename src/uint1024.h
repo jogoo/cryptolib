@@ -20,7 +20,7 @@ extern "C"
   {
 #endif
 
-#define MAX_SIZE_BITS 32
+#define MAX_SIZE_BITS 8192
 #define MAX_SIZE_BYTES MAX_SIZE_BITS / 8
 
 #ifndef max
@@ -44,7 +44,15 @@ typedef struct
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 uint1_t
-uint1024_isgreater (const uint1024_t *a, const uint1024_t *b);
+uint1024_isgreat (const uint1024_t *a, const uint1024_t *b);
+
+/**
+ * uint1024 check if a >= b.
+ *
+ * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
+ */
+uint1_t
+uint1024_isgreatoreq (const uint1024_t *a, const uint1024_t *b);
 
 /**
  * uint1024 check if a < b.
@@ -107,12 +115,28 @@ void
 uint1024_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
 
 /**
+ * uint1024 increment c = a + 1.
+ *
+ * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
+ */
+void
+uint1024_inc (const uint1024_t *a, uint1024_t *c);
+
+/**
  * uint1024 subtraction c = a - b.
  *
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 void
 uint1024_sub (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
+
+/**
+ * uint1024 decrement c = a - 1.
+ *
+ * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
+ */
+void
+uint1024_dec (const uint1024_t *a, uint1024_t *c);
 
 /**
  * uint1024 multiplication c = a * b.
@@ -122,6 +146,9 @@ uint1024_sub (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
 void
 uint1024_mul (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
 
+/**
+ * uint1024 multiplication c = a * b.
+ */
 void
 uint1024_gcd (const uint1024_t *a, const uint1024_t *b, uint1024_t *c);
 

@@ -19,14 +19,15 @@ uint1024_isequal (const uint1024_t *a, const uint1024_t *b)
   return memcmp (a->bytes, b->bytes, MAX_SIZE_BYTES) == 0;
 }
 
-uint1_t
-uint1024_isgreater (const uint1024_t *a, const uint1024_t *b)
+static uint1_t
+uint1024_isgreater_n (const uint1024_t *a, const uint1024_t *b,
+		      const uint1_t eq)
 {
   assert(a != NULL);
   assert(b != NULL);
 
-  uint8_t ai, bi;
   uint16_t i;
+  uint8_t ai, bi;
   for (i = MAX_SIZE_BYTES; i > 0;)
     {
       ai = a->bytes[--i];
@@ -39,14 +40,25 @@ uint1024_isgreater (const uint1024_t *a, const uint1024_t *b)
       else
 	return 0;
     }
+  return eq;
+}
 
-  return 0;
+uint1_t
+uint1024_isgreatoreq (const uint1024_t *a, const uint1024_t *b)
+{
+  return uint1024_isgreater_n (a, b, 1);
+}
+
+uint1_t
+uint1024_isgreat (const uint1024_t *a, const uint1024_t *b)
+{
+  return uint1024_isgreater_n (a, b, 0);
 }
 
 uint1_t
 uint1024_isless (const uint1024_t *a, const uint1024_t *b)
 {
-  return uint1024_isgreater (a, b) == 0;
+  return uint1024_isgreat (a, b) == 0;
 }
 
 uint1_t
@@ -80,12 +92,12 @@ uint1024_isone (const uint1024_t *bn)
 }
 
 void
-uint1024_set (const uint1024_t *bn, const uint8_t *val)
+uint1024_set (const uint1024_t *bn, const uint8_t *c)
 {
   assert(bn != NULL);
-  assert(val != NULL);
+  assert(c != NULL);
 
-  memcpy(bn->bytes, val, MAX_SIZE_BYTES);
+  memcpy(bn->bytes, c, MAX_SIZE_BYTES);
 }
 
 static void
@@ -111,6 +123,12 @@ uint1024_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
   assert(dest != NULL);
 
   uint1024_add_n (a->bytes, b->bytes, dest->bytes, MAX_SIZE_BYTES);
+}
+
+void
+uint1024_inc (const uint1024_t *a, uint1024_t *dest)
+{
+  uint1024_add (a, &ONE, dest);
 }
 
 static void
@@ -140,12 +158,18 @@ uint1024_sub (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
   uint1024_sub_n (a->bytes, b->bytes, dest->bytes, MAX_SIZE_BYTES);
 }
 
+void
+uint1024_dec (const uint1024_t *a, uint1024_t *dest)
+{
+  uint1024_sub (a, &ONE, dest);
+}
+
 static void
 shift_and_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
 {
   // assert not needed.
 
-  // SENSITIVE -> zeroize after use
+// SENSITIVE -> zeroize after use
   uint1024_t _a;
   uint1024_t _b;
 
@@ -217,7 +241,7 @@ uint1024_gcd (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
       while (!uint1024_isodd (&_b))
 	uint1024_rshift (&_b, 1, &_b);
 
-      if (uint1024_isgreater (&_a, &_b))
+      if (uint1024_isgreat (&_a, &_b))
 	uint1024_swap (&_a, &_b);
       uint1024_sub (&_b, &_a, &_b);
     }
@@ -236,17 +260,22 @@ uint1024_mod (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
   assert(b != NULL);
   assert(dest != NULL);
 
-  uint1024_print (a);
-  uint1024_print (b);
+  // SENSITIVE -> zeroize after use
+  uint1024_t _r;
+  uint1024_t _q;
 
-  uint1024_gcd (a, b, dest);
-  uint1024_print (dest);
+  uint1024_set (&_r, a->bytes);
+  uint1024_zeroize (&_q);
 
-  uint1024_mul (dest, b, dest);
-  uint1024_print (dest);
+  while (uint1024_isgreatoreq (&_r, b))
+    {
+      uint1024_sub (&_r, b, &_r);
+      uint1024_inc (&_q, &_q);
+    }
+  uint1024_set (dest, _r.bytes);
 
-  uint1024_sub (a, dest, dest);
-  uint1024_print (dest);
+  uint1024_zeroize (&_r);
+  uint1024_zeroize (&_q);
 }
 
 void

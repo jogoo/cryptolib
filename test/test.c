@@ -177,7 +177,7 @@ test_greater ()
     {
       a1.bytes[i] = i;
       b1.bytes[i] = i + 1;
-      assert(uint1024_isgreater (&a1, &b1) == 0);
+      assert(uint1024_isgreat (&a1, &b1) == 0);
     }
 
   uint1024_t a2;
@@ -190,7 +190,7 @@ test_greater ()
     {
       a2.bytes[i] = i + 1;
       b2.bytes[i] = i;
-      assert(uint1024_isgreater (&a2, &b2) == 1);
+      assert(uint1024_isgreat (&a2, &b2) == 1);
     }
 }
 
@@ -264,17 +264,32 @@ test_gcd ()
 static void
 test_mod ()
 {
-  uint1024_t a1 =
-    { 0x0a };
-  uint1024_t b1 =
+  uint1024_t a =
+    { 0x0b };
+  uint1024_t b =
     { 0x02 };
   uint1024_t check =
     { 0x01 };
   uint1024_t c;
   uint1024_zeroize (&c);
 
-  uint1024_mod (&a1, &b1, &c);
-  uint1024_print (&c);
+  uint1024_mod (&a, &b, &c);
+  assert(uint1024_isequal (&c, &check) == 1);
+}
+
+static void
+test_mod_2 ()
+{
+  uint1024_t a = // 2DDE08C3B
+	{ 0x3b, 0x8c, 0xe0, 0xdd, 0x02 };
+  uint1024_t b = // 2BDF
+	{ 0xdf, 0x2b };
+  uint1024_t check = // 129B
+	{ 0x9b, 0x12 };
+  uint1024_t c;
+  uint1024_zeroize (&c);
+
+  uint1024_mod (&a, &b, &c);
   assert(uint1024_isequal (&c, &check) == 1);
 }
 
@@ -298,6 +313,7 @@ test ()
   test_gcd ();
 
   test_mod ();
+  test_mod_2 ();
 
   printf ("Testfall avklarade.");
 }
