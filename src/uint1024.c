@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "uint1024.h"
 
@@ -16,7 +17,7 @@ uint1024_isequal (const uint1024_t *a, const uint1024_t *b)
   assert(a != NULL);
   assert(b != NULL);
 
-  return memcmp (a->bytes, b->bytes, MAX_SIZE_BYTES) == 0;
+  return memcmp (a->parts, b->parts, NUMBER_OF_BYTES) == 0;
 }
 
 static uint1_t
@@ -27,11 +28,11 @@ uint1024_isgreater_n (const uint1024_t *a, const uint1024_t *b,
   assert(b != NULL);
 
   uint16_t i;
-  uint8_t ai, bi;
-  for (i = MAX_SIZE_BYTES; i > 0;)
+  uint_p ai, bi;
+  for (i = NUMBER_OF_PARTS; i > 0;)
     {
-      ai = a->bytes[--i];
-      bi = b->bytes[i];
+      ai = a->parts[--i];
+      bi = b->parts[i];
 
       if (ai == bi)
 	continue;
@@ -66,7 +67,7 @@ uint1024_isodd (const uint1024_t *bn)
 {
   assert(bn != NULL);
 
-  return bn->bytes[0] & 0x01;
+  return bn->parts[0] & 0x01;
 }
 
 uint1_t
@@ -80,7 +81,7 @@ uint1024_iszero (const uint1024_t *bn)
 {
   assert(bn != NULL);
 
-  return memcmp (bn->bytes, ZERO.bytes, MAX_SIZE_BYTES) == 0;
+  return memcmp (bn->parts, ZERO.parts, NUMBER_OF_BYTES) == 0;
 }
 
 uint1_t
@@ -88,41 +89,33 @@ uint1024_isone (const uint1024_t *bn)
 {
   assert(bn != NULL);
 
-  return memcmp (bn->bytes, ONE.bytes, MAX_SIZE_BYTES) == 0;
+  return memcmp (bn->parts, ONE.parts, NUMBER_OF_BYTES) == 0;
 }
 
 void
-uint1024_set (const uint1024_t *bn, const uint8_t *c)
+uint1024_set (const uint1024_t *bn, const uint_p *c)
 {
   assert(bn != NULL);
   assert(c != NULL);
 
-  memcpy(bn->bytes, c, MAX_SIZE_BYTES);
-}
-
-static void
-uint1024_add_n (const uint8_t *a, const uint8_t *b, uint8_t *dest,
-		uint16_t size)
-{
-  // assert not needed.
-
-  uint16_t i, s, cy;
-  for (i = 0, cy = 0; i < MAX_SIZE_BYTES; i++)
-    {
-      s = a[i] + b[i] + cy;
-      cy = s >> 8;
-      dest[i] = (uint8_t) s;
-    }
+  memcpy(bn->parts, c, NUMBER_OF_BYTES);
 }
 
 void
-uint1024_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
+uint1024_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *c)
 {
   assert(a != NULL);
   assert(b != NULL);
-  assert(dest != NULL);
+  assert(c != NULL);
 
-  uint1024_add_n (a->bytes, b->bytes, dest->bytes, MAX_SIZE_BYTES);
+  uint16_t i;
+  uint_p sum, carry;
+
+  for (i = 0, carry = 0; i < NUMBER_OF_PARTS; i++)
+    {
+      carry |= __builtin_uaddll_overflow (a->parts[i], carry, &sum);
+      carry |= __builtin_uaddll_overflow (sum, b->parts[i], &c->parts[i]);
+    }
 }
 
 void
@@ -131,31 +124,21 @@ uint1024_inc (const uint1024_t *a, uint1024_t *dest)
   uint1024_add (a, &ONE, dest);
 }
 
-static void
-uint1024_sub_n (const uint8_t *a, const uint8_t *b, uint8_t *dest,
-		uint16_t size)
-{
-  // assert not needed.
-
-  uint16_t i;
-  uint8_t by, cy;
-  for (i = 0, cy = 0; i < size; i++)
-    {
-      by = b[i] + cy;
-      cy = by < cy;
-      cy += a[i] < by;
-      dest[i] = a[i] - by;
-    }
-}
-
 void
-uint1024_sub (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
+uint1024_sub (const uint1024_t *a, const uint1024_t *b, uint1024_t *c)
 {
   assert(a != NULL);
   assert(b != NULL);
-  assert(dest != NULL);
+  assert(c != NULL);
 
-  uint1024_sub_n (a->bytes, b->bytes, dest->bytes, MAX_SIZE_BYTES);
+  uint16_t i;
+  uint_p sum, carry;
+
+  for (i = 0, carry = 0; i < NUMBER_OF_PARTS; i++)
+    {
+      carry |= __builtin_usubll_overflow (a->parts[i], carry, &sum);
+      carry |= __builtin_usubll_overflow (sum, b->parts[i], &c->parts[i]);
+    }
 }
 
 void
@@ -173,8 +156,8 @@ shift_and_add (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
   uint1024_t _a;
   uint1024_t _b;
 
-  uint1024_set (&_a, a->bytes);
-  uint1024_set (&_b, b->bytes);
+  uint1024_set (&_a, a->parts);
+  uint1024_set (&_b, b->parts);
 
   uint1024_zeroize (dest);
 
@@ -210,12 +193,12 @@ uint1024_gcd (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
 
   if (uint1024_iszero (a) || uint1024_isequal (a, b))
     {
-      uint1024_set (dest, b->bytes);
+      uint1024_set (dest, b->parts);
       return;
     }
   if (uint1024_iszero (b))
     {
-      uint1024_set (dest, a->bytes);
+      uint1024_set (dest, a->parts);
       return;
     }
 
@@ -223,8 +206,8 @@ uint1024_gcd (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
   uint1024_t _a;
   uint1024_t _b;
 
-  uint1024_set (&_a, a->bytes);
-  uint1024_set (&_b, b->bytes);
+  uint1024_set (&_a, a->parts);
+  uint1024_set (&_b, b->parts);
 
   uint16_t shift;
   for (shift = 0; (uint1024_iseven (&_a) && uint1024_iseven (&_b)); ++shift)
@@ -264,7 +247,7 @@ uint1024_mod (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
   uint1024_t _r;
   uint1024_t _q;
 
-  uint1024_set (&_r, a->bytes);
+  uint1024_set (&_r, a->parts);
   uint1024_zeroize (&_q);
 
   while (uint1024_isgreatoreq (&_r, b))
@@ -272,10 +255,26 @@ uint1024_mod (const uint1024_t *a, const uint1024_t *b, uint1024_t *dest)
       uint1024_sub (&_r, b, &_r);
       uint1024_inc (&_q, &_q);
     }
-  uint1024_set (dest, _r.bytes);
+  uint1024_set (dest, _r.parts);
 
   uint1024_zeroize (&_r);
   uint1024_zeroize (&_q);
+}
+
+void
+uintp_rotl (uint_p *a, uint8_t n, uint_p *c)
+{
+  const uint8_t mask = PART_SIZE_BITS - 1;
+  n &= mask;
+  *c = (*a << n) | (*a >> ((-n) & mask));
+}
+
+void
+uintp_rotr (uint_p *a, uint8_t n, uint_p *c)
+{
+  const uint8_t mask = PART_SIZE_BITS - 1;
+  n &= mask;
+  *c = (*a >> n) | (*a << ((-n) & mask));
 }
 
 void
@@ -296,8 +295,8 @@ uint1024_modp (const uint1024_t *base, const uint1024_t *exp,
   uint1024_t _base;
   uint1024_t _exp;
 
-  uint1024_set (dest, &ONE.bytes);
-  uint1024_set (&_exp, exp->bytes);
+  uint1024_set (dest, &ONE.parts);
+  uint1024_set (&_exp, exp->parts);
 
   uint1024_mod (base, mod, &_base);
 
@@ -319,22 +318,27 @@ uint1024_lshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest)
 {
   assert(bn != NULL);
   assert(dest != NULL);
-  assert(n < MAX_SIZE_BITS);
+  assert(n < NUMBER_OF_BITS);
 
   if (n == 0)
     return;
 
   int16_t j;
-  uint8_t d, t;
-  uint16_t i, cy;
+  uint16_t i;
+  uint8_t d, t, k;
+  uint_p carry, mask;
 
-  d = n % 8;
-  t = (n - d) / 8;
-  for (i = MAX_SIZE_BYTES; i > 0;)
+  d = n % PART_SIZE_BITS;
+  k = n - d;
+  t = k / PART_SIZE_BITS;
+  mask = (1 << d) - 1;
+  uintp_rotr (&mask, d, &mask);
+
+  for (i = NUMBER_OF_PARTS; i > 0;)
     {
       j = --i - t;
-      cy = (j > 0) ? (bn->bytes[j - 1] << d) >> 8 : 0;
-      dest->bytes[i] = (j >= 0) ? (bn->bytes[j] << d) | cy : 0;
+      carry = (j > 0) ? (bn->parts[j - 1] & mask) >> k : 0;
+      dest->parts[i] = (j >= 0) ? (bn->parts[j] << d) | carry : 0;
     }
 }
 
@@ -343,22 +347,26 @@ uint1024_rshift (const uint1024_t *bn, uint16_t n, uint1024_t *dest)
 {
   assert(bn != NULL);
   assert(dest != NULL);
-  assert(n < MAX_SIZE_BITS);
+  assert(n < NUMBER_OF_BITS);
 
   if (n == 0)
     return;
 
   int16_t j;
-  uint8_t d, t, cy;
   uint16_t i;
+  uint8_t d, k, t;
+  uint_p carry, mask;
 
-  d = n % 8;
-  t = (n - d) / 8;
-  for (i = 0; i < MAX_SIZE_BYTES; i++)
+  d = n % PART_SIZE_BITS;
+  k = n - d;
+  t = k / PART_SIZE_BITS;
+  mask = (1 << d) - 1;
+
+  for (i = 0; i < NUMBER_OF_PARTS; i++)
     {
       j = i + t;
-      cy = (j < MAX_SIZE_BYTES - 1) ? bn->bytes[j + 1] << (8 - d) : 0;
-      dest->bytes[i] = (j < MAX_SIZE_BYTES) ? (bn->bytes[j] >> d) | cy : 0;
+      carry = (j < NUMBER_OF_PARTS - 1) ? bn->parts[j + 1] & mask : 0;
+      dest->parts[i] = (j < NUMBER_OF_PARTS) ? (bn->parts[j] >> d) | carry : 0;
     }
 }
 
@@ -367,7 +375,7 @@ uint1024_zeroize (const uint1024_t *bn)
 {
   assert(bn != NULL);
 
-  memset(bn->bytes, 0, MAX_SIZE_BYTES);
+  memset(bn->parts, 0, NUMBER_OF_BYTES);
 }
 
 void
@@ -380,11 +388,20 @@ uint1024_swap (uint1024_t *a, uint1024_t *b)
   // SENSITIVE -> zeroize after use
   uint1024_t _t;
 
-  uint1024_set (&_t, a->bytes);
-  uint1024_set (a, b->bytes);
-  uint1024_set (b, _t.bytes);
+  uint1024_set (&_t, a->parts);
+  uint1024_set (a, b->parts);
+  uint1024_set (b, _t.parts);
 
   uint1024_zeroize (&_t);
+}
+
+void
+print_array (uint_p *array, uint16_t size)
+{
+  uint16_t i;
+  for (i = size; i > 0;)
+    printf (PRINT_FORMAT, array[--i]);
+  printf ("\n");
 }
 
 void
@@ -392,6 +409,6 @@ uint1024_print (uint1024_t *bn)
 {
   assert(bn != NULL);
 
-  print_array (bn->bytes, MAX_SIZE_BYTES);
+  print_array (bn->parts, NUMBER_OF_PARTS);
 }
 
