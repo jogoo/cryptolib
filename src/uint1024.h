@@ -20,8 +20,15 @@ extern "C"
   {
 #endif
 
-#define MAX_SIZE_BITS 8192
-#define MAX_SIZE_BYTES MAX_SIZE_BITS / 8
+#define NUMBER_OF_BITS 256
+typedef uint64_t uint_p;
+
+#define PART_SIZE_BYTES sizeof(uint_p)
+#define PART_SIZE_BITS (PART_SIZE_BYTES * 8)
+#define NUMBER_OF_BYTES (NUMBER_OF_BITS / 8)
+#define NUMBER_OF_PARTS (NUMBER_OF_BITS / (PART_SIZE_BITS))
+
+#define PRINT_FORMAT "%016llx"
 
 #ifndef max
 #define max(a,b) ((a) > (b) ? (a) : (b))
@@ -31,12 +38,12 @@ extern "C"
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
-typedef _Bool uint1_t;
-
 typedef struct
 {
-  uint8_t bytes[MAX_SIZE_BYTES];
+  uint_p parts[NUMBER_OF_PARTS];
 } uint1024_t;
+
+typedef _Bool uint1_t;
 
 /**
  * uint1024 check if a > b.
@@ -104,7 +111,7 @@ uint1024_isone (const uint1024_t *bn);
  * The running time of implemented algorithm is O(n) where n is number of bytes is uint1024.
  */
 void
-uint1024_set (const uint1024_t *bn, const uint8_t *val);
+uint1024_set (const uint1024_t *bn, const uint_p *val);
 
 /**
  * uint1024 addition c = a + b.
@@ -173,6 +180,12 @@ uint1024_mod (const uint1024_t *base, const uint1024_t *mod, uint1024_t *c);
 void
 uint1024_modp (const uint1024_t *base, const uint1024_t *exp,
 	       const uint1024_t *mod, uint1024_t *c);
+
+void
+uintp_rotr (uint_p *a, uint8_t n, uint_p *c);
+
+void
+uintp_rotl (uint_p *a, uint8_t n, uint_p *c);
 
 /**
  * uint1024 logical left shift.
