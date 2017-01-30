@@ -3,27 +3,27 @@
 #include <assert.h>
 #include <inttypes.h>
 
-#include "../src/uint1024.h"
+#include "../src/uintN.h"
 
 static void
 test_add_simple ()
 {
-  uint1024_t a =
+  uintN_t a =
     { 0 };
-  uint1024_t b =
+  uintN_t b =
     { 0 };
 
-  uint1024_t c, d;
+  uintN_t c, d;
   uint16_t i;
   for (i = 0; i < NUMBER_OF_PARTS; i++)
     {
       a.parts[i] = i;
       b.parts[i] = i;
 
-      uint1024_add (&a, &b, &c);
-      uint1024_sub (&c, &b, &d);
+      uintN_add (&a, &b, &c);
+      uintN_sub (&c, &b, &d);
 
-      assert(uint1024_isequal (&a, &d) == 1);
+      assert(uintN_isequal (&a, &d) == 1);
     }
 }
 
@@ -31,31 +31,31 @@ static void
 test_add_complex ()
 {
 
-  uint1024_t a1;
-  uint1024_t c1;
+  uintN_t a1;
+  uintN_t c1;
 
-  uint1024_zeroize (&a1);
-  uint1024_zeroize (&c1);
+  uintN_zeroize (&a1);
+  uintN_zeroize (&c1);
 
-  uint1024_t b1 =
+  uintN_t b1 =
     { 0x02 };
 
-  uint1024_sub (&a1, &b1, &c1);
-  uint1024_add (&c1, &b1, &c1);
+  uintN_sub (&a1, &b1, &c1);
+  uintN_add (&c1, &b1, &c1);
 
-  assert(uint1024_isequal (&a1, &c1) == 1);
+  assert(uintN_isequal (&a1, &c1) == 1);
 
-  uint1024_t a2 =
+  uintN_t a2 =
     { 0x0 };
-  uint1024_t b2 =
+  uintN_t b2 =
     { 0x02 };
-  uint1024_t c2;
-  uint1024_zeroize (&c2);
+  uintN_t c2;
+  uintN_zeroize (&c2);
 
-  uint1024_sub (&a2, &b2, &c2);
-  uint1024_add (&c2, &b2, &c2);
+  uintN_sub (&a2, &b2, &c2);
+  uintN_add (&c2, &b2, &c2);
 
-  assert(uint1024_isequal (&a2, &c2) == 1);
+  assert(uintN_isequal (&a2, &c2) == 1);
 }
 
 static void
@@ -97,94 +97,94 @@ test_rotl ()
 static void
 test_lshift_simple ()
 {
-  uint1024_t a =
+  uintN_t a =
     { 0xff };
-  uint1024_t b;
+  uintN_t b;
 
-  uint1024_t c1 =
+  uintN_t c1 =
     { 0x01fe };
-  uint1024_lshift (&a, 1, &b);
-  assert(uint1024_isequal (&b, &c1) == 1);
+  uintN_lshift (&a, 1, &b);
+  assert(uintN_isequal (&b, &c1) == 1);
 
-  uint1024_t c2 =
+  uintN_t c2 =
     { 0x7f80 };
-  uint1024_lshift (&a, 7, &b);
-  assert(uint1024_isequal (&b, &c2) == 1);
+  uintN_lshift (&a, 7, &b);
+  assert(uintN_isequal (&b, &c2) == 1);
 
-  uint1024_t c3 =
+  uintN_t c3 =
     { 0x00, 0xff };
-  uint1024_lshift (&a, PART_SIZE_BITS, &b);
-  assert(uint1024_isequal (&b, &c3) == 1);
+  uintN_lshift (&a, PART_SIZE_BITS, &b);
+  assert(uintN_isequal (&b, &c3) == 1);
 
-  uint1024_t c4 =
+  uintN_t c4 =
     { 0x00, 0x8000000000000000, 0xfe };
-  uint1024_lshift (&a, 2 * PART_SIZE_BITS - 1, &b);
-  assert(uint1024_isequal (&b, &c4) == 1);
+  uintN_lshift (&a, 2 * PART_SIZE_BITS - 1, &b);
+  assert(uintN_isequal (&b, &c4) == 1);
 
-//  uint1024_t c5 =
+//  uintN_t c5 =
 //    { 0x00, 0x00, 0x00, 0x80, 0x7f };
-//  uint1024_lshift (&a, 31, &b);
-//  assert(uint1024_isequal (&b, &c5) == 1);
+//  uintN_lshift (&a, 31, &b);
+//  assert(uintN_isequal (&b, &c5) == 1);
 
 // 5F8EF09 * 2 = BF1DE12
-  uint1024_t a6 =
+  uintN_t a6 =
     { 0x05f8ef09 };
-  uint1024_t c6 =
+  uintN_t c6 =
     { 0x0bf1de12 };
-  uint1024_lshift (&a6, 1, &b);
-  assert(uint1024_isequal (&b, &c6) == 1);
+  uintN_lshift (&a6, 1, &b);
+  assert(uintN_isequal (&b, &c6) == 1);
 }
 
 static void
 test_rshift_simple ()
 {
-  uint1024_t a =
+  uintN_t a =
     { 0x0fff };
-  uint1024_t b;
+  uintN_t b;
 
-  uint1024_t c1 =
+  uintN_t c1 =
     { 0x07ff };
-  uint1024_rshift (&a, 1, &b);
-  assert(uint1024_isequal (&b, &c1) == 1);
+  uintN_rshift (&a, 1, &b);
+  assert(uintN_isequal (&b, &c1) == 1);
 
-  uint1024_t a2 =
+  uintN_t a2 =
     { 0xEA535255 };
-  uint1024_t c2 =
+  uintN_t c2 =
     { 0x7529A9 };
-  uint1024_rshift (&a2, 9, &b);
-  assert(uint1024_isequal (&b, &c2) == 1);
+  uintN_rshift (&a2, 9, &b);
+  assert(uintN_isequal (&b, &c2) == 1);
 
-  uint1024_t a3;
-  uint1024_zeroize (&a3);
+  uintN_t a3;
+  uintN_zeroize (&a3);
   a3.parts[NUMBER_OF_PARTS - 1] = 0x80;
 
-  uint1024_t c3;
-  uint1024_zeroize (&c3);
+  uintN_t c3;
+  uintN_zeroize (&c3);
   c3.parts[NUMBER_OF_PARTS - 1] = 0x40;
 
-  uint1024_rshift (&a3, 1, &b);
-  assert(uint1024_isequal (&b, &c3) == 1);
+  uintN_rshift (&a3, 1, &b);
+  assert(uintN_isequal (&b, &c3) == 1);
 
-  uint1024_t a4;
-  uint1024_zeroize (&a4);
+  uintN_t a4;
+  uintN_zeroize (&a4);
 
   a4.parts[0] = 0x01;
-  uint1024_t c4;
-  uint1024_zeroize (&c4);
+  uintN_t c4;
+  uintN_zeroize (&c4);
 
-  uint1024_rshift (&a4, 1, &b);
-  assert(uint1024_isequal (&b, &c4) == 1);
+  uintN_rshift (&a4, 1, &b);
+  assert(uintN_isequal (&b, &c4) == 1);
 }
 
 static void
 test_shift_complex ()
 {
 
-  uint1024_t bn;
-  uint1024_t check;
+  uintN_t bn;
+  uintN_t check;
 
-  uint1024_zeroize (&bn);
-  uint1024_zeroize (&check);
+  uintN_zeroize (&bn);
+  uintN_zeroize (&check);
 
   uint16_t i;
   for (i = 0; i < NUMBER_OF_PARTS - NUMBER_OF_PARTS / 8 - 1; i++)
@@ -194,158 +194,161 @@ test_shift_complex ()
       if (i == 0)
 	continue;
 
-      uint1024_lshift (&bn, i, &check);
-      uint1024_rshift (&check, i, &check);
-      assert(uint1024_isequal (&bn, &check) == 1);
+      uintN_lshift (&bn, i, &check);
+      uintN_rshift (&check, i, &check);
+      assert(uintN_isequal (&bn, &check) == 1);
     }
 }
 
 static void
 test_greater ()
 {
-  uint1024_t a1;
-  uint1024_t b1;
+  uintN_t a1;
+  uintN_t b1;
 
-  uint1024_zeroize (&a1);
-  uint1024_zeroize (&b1);
+  uintN_zeroize (&a1);
+  uintN_zeroize (&b1);
 
   uint16_t i;
   for (i = 0; i < NUMBER_OF_PARTS; i++)
     {
       a1.parts[i] = i;
       b1.parts[i] = i + 1;
-      assert(uint1024_isgreat (&a1, &b1) == 0);
+      assert(uintN_isgreat (&a1, &b1) == 0);
     }
 
-  uint1024_t a2;
-  uint1024_t b2;
+  uintN_t a2;
+  uintN_t b2;
 
-  uint1024_zeroize (&a2);
-  uint1024_zeroize (&b2);
+  uintN_zeroize (&a2);
+  uintN_zeroize (&b2);
 
   for (i = 0; i < NUMBER_OF_PARTS; i++)
     {
       a2.parts[i] = i + 1;
       b2.parts[i] = i;
-      assert(uint1024_isgreat (&a2, &b2) == 1);
+      assert(uintN_isgreat (&a2, &b2) == 1);
     }
 }
 
 static void
 test_oddeven ()
 {
-  uint1024_t a;
+  uintN_t a;
 
-  uint1024_zeroize (&a);
+  uintN_zeroize (&a);
 
   uint16_t i;
   for (i = 0; i < 0xff; i++)
     {
       a.parts[0] = i % 2;
       if (i % 2 == 1)
-	assert(uint1024_isodd (&a) == 1);
+	assert(uintN_isodd (&a) == 1);
       else
-	assert(uint1024_iseven (&a) == 1);
+	assert(uintN_iseven (&a) == 1);
     }
 }
 
 static void
 test_mul ()
 {
-  uint1024_t a1 =
+  uintN_t a1 =
     { 0x0b };
-  uint1024_t b1 =
+  uintN_t b1 =
     { 0x03 };
-  uint1024_t check =
+  uintN_t check =
     { 0x21 };
-  uint1024_t c;
+  uintN_t c;
 
-  uint1024_zeroize (&c);
-  uint1024_mul (&a1, &b1, &c);
-  assert(uint1024_isequal (&c, &check) == 1);
+  uintN_zeroize (&c);
+  uintN_mul (&a1, &b1, &c);
+  assert(uintN_isequal (&c, &check) == 1);
 }
 
 static void
 test_mul_2 ()
 {
-  uint1024_t a1 =
+  uintN_t a1 =
     { 0x16c6 };
-  uint1024_t b1 =
+  uintN_t b1 =
     { 0x016d92d9 };
-  uint1024_t check =
+  uintN_t check =
     { 0x20855e39d6 };
-  uint1024_t c;
+  uintN_t c;
 
-  uint1024_zeroize (&c);
-  uint1024_mul (&a1, &b1, &c);
-  assert(uint1024_isequal (&c, &check) == 1);
+  uintN_zeroize (&c);
+  uintN_mul (&a1, &b1, &c);
+  assert(uintN_isequal (&c, &check) == 1);
 }
 
 static void
 test_gcd ()
 {
-  uint1024_t a =
+  uintN_t a =
     { 0x36 };
-  uint1024_t b =
+  uintN_t b =
     { 0x18 };
-  uint1024_t check =
+  uintN_t check =
     { 0x06 };
 
-  uint1024_t c;
-  uint1024_zeroize (&c);
+  uintN_t c;
+  uintN_zeroize (&c);
 
-  uint1024_gcd (&a, &b, &c);
-  assert(uint1024_isequal (&c, &check) == 1);
+  uintN_gcd (&a, &b, &c);
+  assert(uintN_isequal (&c, &check) == 1);
 }
 
 static void
 test_mod ()
 {
-  uint1024_t a =
+  uintN_t a =
     { 0x0b };
-  uint1024_t b =
+  uintN_t b =
     { 0x02 };
-  uint1024_t check =
+  uintN_t check =
     { 0x01 };
-  uint1024_t c;
-  uint1024_zeroize (&c);
+  uintN_t c;
+  uintN_zeroize (&c);
 
-  uint1024_mod (&a, &b, &c);
-  assert(uint1024_isequal (&c, &check) == 1);
+  uintN_mod (&a, &b, &c);
+  assert(uintN_isequal (&c, &check) == 1);
 }
 
 static void
 test_mod_2 ()
 {
-  uint1024_t a = // 2DDE08C3B
+  uintN_t a = // 2DDE08C3B
 	{ 0x02dde08c3b };
-  uint1024_t b = // 2BDF
+  uintN_t b = // 2BDF
 	{ 0x2bdf };
-  uint1024_t check = // 129B
+  uintN_t check = // 129B
 	{ 0x129b };
-  uint1024_t c;
-  uint1024_zeroize (&c);
+  uintN_t c;
+  uintN_zeroize (&c);
 
-  uint1024_mod (&a, &b, &c);
-  assert(uint1024_isequal (&c, &check) == 1);
+  uintN_mod (&a, &b, &c);
+  assert(uintN_isequal (&c, &check) == 1);
 }
 
 static void
 test_modp ()
 {
-  uint1024_t a =
-	{ 0x05 };
-  uint1024_t b =
-	{ 0x37 };
-  uint1024_t m =
-	{ 0xDD };
-  uint1024_t check =
-	{ 0x70 };
-  uint1024_t c;
-  uint1024_zeroize (&c);
+  char *n_str =
+      "a63fb6b665165b254ed49b84bfdb1912d900eb55d302a649c55a5640533c4bc22ace842e2ff7d396ddca4ac226bcae5d390163c2b1599e81aa736a9fa0fad3ed006efd0666769988c99753c92882c4cefcd0586dd0c7fb01027225cbcdb6a5638dd414ee69b9db1a4ce3089349b8c83ce7e84da0e7073351100f64a738c999f11ccb6276d2f67bd199bbd31f2d5cdfe8155edd0e2733e8a324116ca535c622e788334e75911dd79e88da82655522e82ed42d5f4c7b78f0ee5ea6beb26fb718f7df1408da7d4051c24e4cb7e0f4ddcd6bf98039eacd92d02217b2ad8dcbab196c0799f79e352a487626f389cd180075d8a8d1a59161692675499c1c65e14f3fe5";
+  char *d =
+      "1635d1dfa93ea4dba59df2cef7e0ba07521574db48ef042f3bddf742edbbd2f53449d5cfe3d9ac9b6db30e6cc4c715565ffcc70aa62dee66ad52710eb56f7d2b9f10b4de0b8751b8bc11eb002758dd19381e4f8a1047ff4921be053da6947da100bc3235adcb4631cbced300f66ae8d976340b56f1367d8d1963ad13481b6ae4db90cfddd45f20148aefe1462271e484d9a8e5ece9b7dae558c5467d37869cf43e7ac7b10bd89825743b1c3ad10a25012dee4fadc23a5b277dd083e11bc40e40a035dffa2b44af2affafc7941448349a3ab1abc3cbcb584a900c8bffdfd5a077475dca2e0d52e7e70863f86e190eddfbb1837b2075db28d2c561b7957e95894b";
 
-  uint1024_modp (&a, &b, &m, &c);
-  assert(uint1024_isequal (&c, &check) == 1);
+  uintN_t n;
+  uintN_zeroize (&n);
+  uintN_parse (n_str, &n);
+
+  uintN_t check =
+    { 0x70 };
+  uintN_t c;
+  uintN_zeroize (&c);
+
+//  uintN_modp (&a, &b, &m, &c);
+  assert(uintN_isequal (&c, &check) == 1);
 }
 
 void
