@@ -19,7 +19,7 @@ extern "C"
   {
 #endif
 
-#define NUMBER_OF_BITS 8192
+#define NUMBER_OF_BITS 2048
 typedef uint64_t uint_p;
 
 #define PART_SIZE_BYTES sizeof(uint_p)

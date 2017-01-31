@@ -276,6 +276,7 @@ uintp_rotr (uint_p *a, uint8_t n, uint_p *c)
   *c = (*a >> n) | (*a << ((-n) & mask));
 }
 
+
 void
 uintN_modp (const uintN_t *base, const uintN_t *exp, const uintN_t *mod,
 	    uintN_t *dest)
@@ -297,19 +298,22 @@ uintN_modp (const uintN_t *base, const uintN_t *exp, const uintN_t *mod,
   uintN_set (dest, &ONE.parts);
   uintN_set (&_exp, exp->parts);
 
-  uintN_mod (base, mod, &_base);
+//  uintN_mod (base, mod, &_base);
 
   while (!uintN_iszero (&_exp))
     {
       if (uintN_isodd (&_exp))
 	{
 	  uintN_mul (dest, &_base, dest);
-	  uintN_mod (dest, mod, dest);
+//	  uintN_mod (dest, mod, dest);
 	}
       uintN_rshift (&_exp, 1, &_exp);
       uintN_mul (&_base, &_base, &_base);
-      uintN_mod (&_base, mod, &_base);
+//      uintN_mod (&_base, mod, &_base);
     }
+
+  uintN_zeroize (&_base);
+  uintN_zeroize (&_exp);
 }
 
 void
@@ -431,8 +435,12 @@ uintN_parse (const char *str, uintN_t *bn)
   uint16_t i, length, step;
   uint_p value;
 
+  uintN_zeroize (bn);
+
   step = sizeof(value) * 2;
   length = strlen (str) / step;
+  if (length == 0)
+    length = 1;
 
   for (i = 0; i < min(NUMBER_OF_BYTES, length); i++)
     if (sscanf (str, PRINT_FORMAT, &value) == 1)
@@ -442,5 +450,8 @@ uintN_parse (const char *str, uintN_t *bn)
       }
     else
       printf ("failed to parse '%s' as hexadecimal number\n", str);
+
+  printf ("parsed value: ");
+  uintN_print (bn);
 }
 
