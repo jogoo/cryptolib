@@ -235,6 +235,32 @@ uintN_gcd (const uintN_t *a, const uintN_t *b, uintN_t *c)
   uintN_zeroize (&_b);
 }
 
+// https://en.wikipedia.org/wiki/Division_algorithm
+//if D = 0 then error(DivisionByZeroException) end
+//Q := 0                 -- initialize quotient and remainder to zero
+//R := 0
+//for i := n − 1 ... 0 do     -- where n is number of bits in N
+//  R := R << 1          -- left-shift R by 1 bit
+//  R(0) := N(i)         -- set the least-significant bit of R equal to bit i of the numerator
+//  if R ≥ D then
+//    R := R − D
+//    Q(i) := 1
+//  end
+//end
+void
+uintN_div (const uintN_t *a, const uintN_t *b, uintN_t *c)
+{
+  assert(a != NULL);
+  assert(b != NULL);
+  assert(c != NULL);
+
+  uintN_zeroize (c);
+
+  uint16_t i;
+//  for (i = 0; i < NUMBER_OF_PARTS; i++)
+
+}
+
 void
 uintN_mod (const uintN_t *a, const uintN_t *b, uintN_t *c)
 {
