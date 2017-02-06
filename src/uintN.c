@@ -11,7 +11,7 @@ const static uintN_t ZERO =
 const static uintN_t ONE =
   { 1 };
 
-uint1_t
+bool
 uintN_isequal (const uintN_t *a, const uintN_t *b)
 {
   assert(a != NULL);
@@ -20,14 +20,14 @@ uintN_isequal (const uintN_t *a, const uintN_t *b)
   return memcmp (a->parts, b->parts, NUMBER_OF_BYTES) == 0;
 }
 
-static uint1_t
-uintN_isgreater_n (const uintN_t *a, const uintN_t *b, const uint1_t eq)
+static bool
+uintN_isgreater_n (const uintN_t *a, const uintN_t *b, const bool eq)
 {
   assert(a != NULL);
   assert(b != NULL);
 
   uint16_t i;
-  uint_p ai, bi;
+  uint64_t ai, bi;
   for (i = NUMBER_OF_PARTS; i > 0;)
     {
       ai = a->parts[--i];
@@ -43,25 +43,25 @@ uintN_isgreater_n (const uintN_t *a, const uintN_t *b, const uint1_t eq)
   return eq;
 }
 
-uint1_t
+bool
 uintN_isgreatoreq (const uintN_t *a, const uintN_t *b)
 {
   return uintN_isgreater_n (a, b, 1);
 }
 
-uint1_t
+bool
 uintN_isgreat (const uintN_t *a, const uintN_t *b)
 {
   return uintN_isgreater_n (a, b, 0);
 }
 
-uint1_t
+bool
 uintN_isless (const uintN_t *a, const uintN_t *b)
 {
   return uintN_isgreat (a, b) == 0;
 }
 
-uint1_t
+bool
 uintN_isodd (const uintN_t *bn)
 {
   assert(bn != NULL);
@@ -69,13 +69,13 @@ uintN_isodd (const uintN_t *bn)
   return bn->parts[0] & 0x01;
 }
 
-uint1_t
+bool
 uintN_iseven (const uintN_t *bn)
 {
   return uintN_isodd (bn) == 0;
 }
 
-uint1_t
+bool
 uintN_iszero (const uintN_t *bn)
 {
   assert(bn != NULL);
@@ -83,7 +83,7 @@ uintN_iszero (const uintN_t *bn)
   return memcmp (bn->parts, ZERO.parts, NUMBER_OF_BYTES) == 0;
 }
 
-uint1_t
+bool
 uintN_isone (const uintN_t *bn)
 {
   assert(bn != NULL);
@@ -92,12 +92,12 @@ uintN_isone (const uintN_t *bn)
 }
 
 void
-uintN_set (const uintN_t *bn, const uint_p *c)
+uintN_set (const uintN_t *bn, const uint64_t *c)
 {
   assert(bn != NULL);
   assert(c != NULL);
 
-  memcpy(bn->parts, c, NUMBER_OF_BYTES);
+  memcpy((void* ) bn->parts, c, NUMBER_OF_BYTES);
 }
 
 void
@@ -108,7 +108,7 @@ uintN_add (const uintN_t *a, const uintN_t *b, uintN_t *c)
   assert(c != NULL);
 
   uint16_t i;
-  uint_p sum, carry;
+  uint64_t sum, carry;
 
   for (i = 0, carry = 0; i < NUMBER_OF_PARTS; i++)
     {
@@ -118,9 +118,9 @@ uintN_add (const uintN_t *a, const uintN_t *b, uintN_t *c)
 }
 
 void
-uintN_inc (const uintN_t *a, uintN_t *dest)
+uintN_inc (uintN_t *bn)
 {
-  uintN_add (a, &ONE, dest);
+  uintN_add (bn, &ONE, bn);
 }
 
 void
@@ -131,7 +131,7 @@ uintN_sub (const uintN_t *a, const uintN_t *b, uintN_t *c)
   assert(c != NULL);
 
   uint16_t i;
-  uint_p sum, carry;
+  uint64_t sum, carry;
 
   for (i = 0, carry = 0; i < NUMBER_OF_PARTS; i++)
     {
@@ -141,9 +141,9 @@ uintN_sub (const uintN_t *a, const uintN_t *b, uintN_t *c)
 }
 
 void
-uintN_dec (const uintN_t *a, uintN_t *dest)
+uintN_dec (uintN_t *bn)
 {
-  uintN_sub (a, &ONE, dest);
+  uintN_sub (bn, &ONE, bn);
 }
 
 static void
@@ -151,7 +151,7 @@ shift_and_add (const uintN_t *a, const uintN_t *b, uintN_t *dest)
 {
   // assert not needed.
 
-// SENSITIVE -> zeroize after use
+  // SENSITIVE -> zeroize after use
   uintN_t _a;
   uintN_t _b;
 
@@ -169,6 +169,7 @@ shift_and_add (const uintN_t *a, const uintN_t *b, uintN_t *dest)
       uintN_lshift (&_b, 1, &_b);
     }
 
+  // zeroize
   uintN_zeroize (&_a);
   uintN_zeroize (&_b);
 }
@@ -184,22 +185,20 @@ uintN_mul (const uintN_t *a, const uintN_t *b, uintN_t *dest)
 }
 
 void
-uintN_gcd (const uintN_t *a, const uintN_t *b, uintN_t *dest)
+uintN_gcd (const uintN_t *a, const uintN_t *b, uintN_t *c)
 {
   assert(a != NULL);
   assert(b != NULL);
-  assert(dest != NULL);
+  assert(c != NULL);
 
-  if (uintN_iszero (a) || uintN_isequal (a, b))
-    {
-      uintN_set (dest, b->parts);
-      return;
-    }
+  if (uintN_iszero (a))
+    uintN_set (c, b->parts);
   if (uintN_iszero (b))
-    {
-      uintN_set (dest, a->parts);
-      return;
-    }
+    uintN_set (c, a->parts);
+  if (uintN_isequal (a, c))
+    return;
+  else if (uintN_isequal (b, c))
+    return;
 
   // SENSITIVE -> zeroize after use
   uintN_t _a;
@@ -208,8 +207,8 @@ uintN_gcd (const uintN_t *a, const uintN_t *b, uintN_t *dest)
   uintN_set (&_a, a->parts);
   uintN_set (&_b, b->parts);
 
-  uint16_t shift;
-  for (shift = 0; (uintN_iseven (&_a) && uintN_iseven (&_b)); ++shift)
+  uint16_t i;
+  for (i = 0; (uintN_iseven (&_a) && uintN_iseven (&_b)); ++i)
     {
       uintN_rshift (&_a, 1, &_a);
       uintN_rshift (&_b, 1, &_b);
@@ -229,39 +228,27 @@ uintN_gcd (const uintN_t *a, const uintN_t *b, uintN_t *dest)
     }
   while (!uintN_iszero (&_b));
 
-  uintN_lshift (&_a, shift, dest);
+  uintN_lshift (&_a, i, c);
 
+  // zeroize
   uintN_zeroize (&_a);
   uintN_zeroize (&_b);
 }
 
 void
-uintN_mod (const uintN_t *a, const uintN_t *b, uintN_t *dest)
+uintN_mod (const uintN_t *a, const uintN_t *b, uintN_t *c)
 {
   assert(a != NULL);
   assert(b != NULL);
-  assert(dest != NULL);
+  assert(c != NULL);
 
-  // SENSITIVE -> zeroize after use
-  uintN_t _r;
-  uintN_t _q;
+  uint16_t i;
+//  for (i = 0; i < NUMBER_OF_PARTS; i++)
 
-  uintN_set (&_r, a->parts);
-  uintN_zeroize (&_q);
-
-  while (uintN_isgreatoreq (&_r, b))
-    {
-      uintN_sub (&_r, b, &_r);
-      uintN_inc (&_q, &_q);
-    }
-  uintN_set (dest, _r.parts);
-
-  uintN_zeroize (&_r);
-  uintN_zeroize (&_q);
 }
 
 void
-uintp_rotl (uint_p *a, uint8_t n, uint_p *c)
+uintp_rotl (uint64_t *a, uint8_t n, uint64_t *c)
 {
   const uint8_t mask = PART_SIZE_BITS - 1;
   n &= mask;
@@ -269,14 +256,57 @@ uintp_rotl (uint_p *a, uint8_t n, uint_p *c)
 }
 
 void
-uintp_rotr (uint_p *a, uint8_t n, uint_p *c)
+uintp_rotr (uint64_t *a, uint8_t n, uint64_t *c)
 {
   const uint8_t mask = PART_SIZE_BITS - 1;
   n &= mask;
   *c = (*a >> n) | (*a << ((-n) & mask));
 }
 
+void
+uintN_pow (const uintN_t *x, const uintN_t *n, uintN_t *c)
+{
+  assert(x != NULL);
+  assert(n != NULL);
+  assert(c != NULL);
 
+  uintN_set (c, ONE.parts);
+
+  if (uintN_iszero (n))
+    return;
+
+  // SENSITIVE -> zeroize after use
+  uintN_t _x;
+  uintN_t _y;
+  uintN_t _n;
+
+  uintN_set (&_x, x->parts);
+  uintN_set (&_y, ONE.parts);
+  uintN_set (&_n, n->parts);
+
+  do
+    {
+      if (uintN_isodd (n))
+	{
+	  uintN_mul (&_x, &_y, &_y);
+	  uintN_mul (&_x, &_x, &_x);
+	  uintN_dec (&_n);
+	}
+      else
+	uintN_mul (&_x, &_x, &_x);
+      uintN_rshift (&_n, 1, &_n);
+    }
+  while (!uintN_isone (&_n));
+
+  uintN_mul (&_x, &_y, c);
+
+  // zeroize
+  uintN_zeroize (&_x);
+  uintN_zeroize (&_y);
+  uintN_zeroize (&_n);
+}
+
+// https://en.wikipedia.org/wiki/Fermat's_little_theorem
 void
 uintN_modp (const uintN_t *base, const uintN_t *exp, const uintN_t *mod,
 	    uintN_t *dest)
@@ -295,23 +325,24 @@ uintN_modp (const uintN_t *base, const uintN_t *exp, const uintN_t *mod,
   uintN_t _base;
   uintN_t _exp;
 
-  uintN_set (dest, &ONE.parts);
+  uintN_set (dest, ONE.parts);
   uintN_set (&_exp, exp->parts);
 
-//  uintN_mod (base, mod, &_base);
+  uintN_mod (base, mod, &_base);
 
   while (!uintN_iszero (&_exp))
     {
       if (uintN_isodd (&_exp))
 	{
 	  uintN_mul (dest, &_base, dest);
-//	  uintN_mod (dest, mod, dest);
+	  uintN_mod (dest, mod, dest);
 	}
       uintN_rshift (&_exp, 1, &_exp);
       uintN_mul (&_base, &_base, &_base);
-//      uintN_mod (&_base, mod, &_base);
+      uintN_mod (&_base, mod, &_base);
     }
 
+  // zeroize
   uintN_zeroize (&_base);
   uintN_zeroize (&_exp);
 }
@@ -329,7 +360,7 @@ uintN_lshift (const uintN_t *bn, uint16_t n, uintN_t *dest)
   int16_t j;
   uint16_t i;
   uint8_t d, t, k;
-  uint_p carry, mask;
+  uint64_t carry, mask;
 
   d = n % PART_SIZE_BITS;
   k = n - d;
@@ -346,10 +377,10 @@ uintN_lshift (const uintN_t *bn, uint16_t n, uintN_t *dest)
 }
 
 void
-uintN_rshift (const uintN_t *bn, uint16_t n, uintN_t *dest)
+uintN_rshift (const uintN_t *bn, uint16_t n, uintN_t *c)
 {
   assert(bn != NULL);
-  assert(dest != NULL);
+  assert(c != NULL);
   assert(n < NUMBER_OF_BITS);
 
   if (n == 0)
@@ -357,19 +388,19 @@ uintN_rshift (const uintN_t *bn, uint16_t n, uintN_t *dest)
 
   int16_t j;
   uint16_t i;
-  uint8_t d, k, t;
-  uint_p carry, mask;
+  uint8_t mod, residue, shift;
+  uint64_t carry, mask;
 
-  d = n % PART_SIZE_BITS;
-  k = n - d;
-  t = k / PART_SIZE_BITS;
-  mask = (1 << d) - 1;
+  mod = n % PART_SIZE_BITS;
+  residue = n - mod;
+  shift = residue / PART_SIZE_BITS;
+  mask = (1 << mod) - 1;
 
   for (i = 0; i < NUMBER_OF_PARTS; i++)
     {
-      j = i + t;
+      j = i + shift;
       carry = (j < NUMBER_OF_PARTS - 1) ? bn->parts[j + 1] & mask : 0;
-      dest->parts[i] = (j < NUMBER_OF_PARTS) ? (bn->parts[j] >> d) | carry : 0;
+      c->parts[i] = (j < NUMBER_OF_PARTS) ? (bn->parts[j] >> mod) | carry : 0;
     }
 }
 
@@ -378,7 +409,7 @@ uintN_zeroize (const uintN_t *bn)
 {
   assert(bn != NULL);
 
-  memset(bn->parts, 0, NUMBER_OF_BYTES);
+  memset((void * ) bn->parts, 0, NUMBER_OF_BYTES);
 }
 
 void
@@ -395,11 +426,12 @@ uintN_swap (uintN_t *a, uintN_t *b)
   uintN_set (a, b->parts);
   uintN_set (b, _t.parts);
 
+  // zeroize
   uintN_zeroize (&_t);
 }
 
 void
-print_array (uint_p *array, uint16_t size)
+print_array (const uint64_t *array, uint16_t size)
 {
   uint16_t i;
   for (i = size; i > 0;)
@@ -415,29 +447,33 @@ uintN_print (uintN_t *bn)
   print_array (bn->parts, NUMBER_OF_PARTS);
 }
 
-static uint_p
-endianize (uint_p x)
+static uint64_t
+endianize (uint64_t x)
 {
   // swap adjacent 32-bit blocks
   x = (x >> 32) | (x << 32);
+
   // swap adjacent 16-bit blocks
   x = ((x & 0xFFFF0000FFFF0000) >> 16) | ((x & 0x0000FFFF0000FFFF) << 16);
+
   // swap adjacent 8-bit blocks
   return ((x & 0xFF00FF00FF00FF00) >> 8) | ((x & 0x00FF00FF00FF00FF) << 8);
 }
 
 void
-uintN_parse (const char *str, uintN_t *bn)
+uintN_readstr (const char *str, uintN_t *bn)
 {
   assert(str != NULL);
   assert(bn != NULL);
 
   uint16_t i, length, step;
-  uint_p value;
+  uint64_t value;
 
   uintN_zeroize (bn);
 
   step = sizeof(value) * 2;
+
+  // TODO left pad zeroes + modulo
   length = strlen (str) / step;
   if (length == 0)
     length = 1;
@@ -450,8 +486,5 @@ uintN_parse (const char *str, uintN_t *bn)
       }
     else
       printf ("failed to parse '%s' as hexadecimal number\n", str);
-
-  printf ("parsed value: ");
-  uintN_print (bn);
 }
 

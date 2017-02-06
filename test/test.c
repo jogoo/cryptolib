@@ -61,16 +61,16 @@ test_add_complex ()
 static void
 test_rotr ()
 {
-  uint_p a1 = 0x01;
-  uint_p b1;
-  uint_p c1 = 0x8000000000000000;
+  uint64_t a1 = 0x01;
+  uint64_t b1;
+  uint64_t c1 = 0x8000000000000000;
 
   uintp_rotr (&a1, 1, &b1);
   assert(b1 == c1);
 
-  uint_p a2 = 0x17;
-  uint_p b2;
-  uint_p c2 = 0xb800000000000000;
+  uint64_t a2 = 0x17;
+  uint64_t b2;
+  uint64_t c2 = 0xb800000000000000;
 
   uintp_rotr (&a2, 5, &b2);
   assert(b2 == c2);
@@ -79,16 +79,16 @@ test_rotr ()
 static void
 test_rotl ()
 {
-  uint_p a1 = 0x8000000000000000;
-  uint_p b1;
-  uint_p c1 = 0x01;
+  uint64_t a1 = 0x8000000000000000;
+  uint64_t b1;
+  uint64_t c1 = 0x01;
 
   uintp_rotl (&a1, 1, &b1);
   assert(b1 == c1);
 
-  uint_p a2 = 0xb800000000000000;
-  uint_p b2;
-  uint_p c2 = 0x17;
+  uint64_t a2 = 0xb800000000000000;
+  uint64_t b2;
+  uint64_t c2 = 0x17;
 
   uintp_rotl (&a2, 5, &b2);
   assert(b2 == c2);
@@ -331,28 +331,45 @@ test_mod_2 ()
 }
 
 static void
+test_pow ()
+{
+  uintN_t a = // 2DDE08C3B
+	{ 0x02dde08c3b };
+  uintN_t b = // 2BDF
+	{ 0x2bdf };
+  uintN_t check = // 129B
+	{ 0x129b };
+  uintN_t c;
+  uintN_zeroize (&c);
+
+  uintN_mod (&a, &b, &c);
+  assert(uintN_isequal (&c, &check) == 1);
+}
+
+static void
 test_modp ()
 {
   char *n_str =
       "a63fb6b665165b254ed49b84bfdb1912d900eb55d302a649c55a5640533c4bc22ace842e2ff7d396ddca4ac226bcae5d390163c2b1599e81aa736a9fa0fad3ed006efd0666769988c99753c92882c4cefcd0586dd0c7fb01027225cbcdb6a5638dd414ee69b9db1a4ce3089349b8c83ce7e84da0e7073351100f64a738c999f11ccb6276d2f67bd199bbd31f2d5cdfe8155edd0e2733e8a324116ca535c622e788334e75911dd79e88da82655522e82ed42d5f4c7b78f0ee5ea6beb26fb718f7df1408da7d4051c24e4cb7e0f4ddcd6bf98039eacd92d02217b2ad8dcbab196c0799f79e352a487626f389cd180075d8a8d1a59161692675499c1c65e14f3fe5";
   char *d_str =
       "1635d1dfa93ea4dba59df2cef7e0ba07521574db48ef042f3bddf742edbbd2f53449d5cfe3d9ac9b6db30e6cc4c715565ffcc70aa62dee66ad52710eb56f7d2b9f10b4de0b8751b8bc11eb002758dd19381e4f8a1047ff4921be053da6947da100bc3235adcb4631cbced300f66ae8d976340b56f1367d8d1963ad13481b6ae4db90cfddd45f20148aefe1462271e484d9a8e5ece9b7dae558c5467d37869cf43e7ac7b10bd89825743b1c3ad10a25012dee4fadc23a5b277dd083e11bc40e40a035dffa2b44af2affafc7941448349a3ab1abc3cbcb584a900c8bffdfd5a077475dca2e0d52e7e70863f86e190eddfbb1837b2075db28d2c561b7957e95894b";
-  char *mod_str = "0008000000000000";
-
   char *EM_str =
       "ff3fb6b665165b254ed49b84bfdb1912d900eb55d302a649c55a5640533c4bc22ace842e2ff7d396ddca4ac226bcae5d390163c2b1599e81aa736a9fa0fad3ed006efd0666769988c99753c92882c4cefcd0586dd0c7fb01027225cbcdb6a5638dd414ee69b9db1a4ce3089349b8c83ce7e84da0e7073351100f64a738c999f11ccb6276d2f67bd199bbd31f2d5cdfe8155edd0e2733e8a324116ca535c622e788334e75911dd79e88da82655522e82ed42d5f4c7b78f0ee5ea6beb26fb718f7df1408da7d4051c24e4cb7e0f4ddcd6bf98039eacd92d02217b2ad8dcbab196c0799f79e352a487626f389cd180075d8a8d1a59161692675499c1c65e14f40bc";
 
   uintN_t n, d, mod, EM;
 
-  uintN_parse (n_str, &n);
-  uintN_parse (d_str, &d);
-  uintN_parse (mod_str, &mod);
-  uintN_parse (EM_str, &EM);
+  uintN_zeroize (&mod);
+  mod.parts[0] = 0x800;
+
+  uintN_readstr (n_str, &n);
+  uintN_readstr (d_str, &d);
+  uintN_readstr (EM_str, &EM);
 
   uintN_t c;
-  uintN_zeroize(&c);
+  uintN_zeroize (&c);
 
   uintN_modp (&n, &d, &mod, &c);
+  uintN_print (&c);
 
   assert(uintN_isequal (&c, &EM) == 1);
 }
@@ -382,6 +399,8 @@ test ()
   test_mul_2 ();
 
   test_gcd ();
+
+  test_pow ();
 
   test_mod ();
   test_mod_2 ();
